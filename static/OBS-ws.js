@@ -45,9 +45,14 @@ class OBSws {
                 that.resolve();
             that.send("GetAuthRequired").then(function (msg) {
                 if (msg.authRequired) {
-                    var password = window.prompt("password", "a");
-
-                    var auth = b64_sha256(b64_sha256(password + msg.salt) + msg.challenge)
+                    var hash;
+                    if(localStorage.getItem("hash")==null){
+                        hash = b64_sha256(window.prompt("password", "a") + msg.salt);
+                        localStorage.setItem("hash",hash);
+                    }else{
+                        hash = localStorage.getItem("hash");
+                    }
+                    var auth = b64_sha256(hash + msg.challenge)
 
                     return that.send('Authenticate', { auth: auth }).then(function (msg) {
                         if (msg.status !== "ok")

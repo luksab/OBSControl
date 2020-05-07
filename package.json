@@ -9,7 +9,7 @@
   },
   "author": "Lukas Sabatschus",
   "dependencies": {
-    "ikea-tradfri": "^4.1.0",
+    "node-tradfri-client": "^2.1.6",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v17.4.0"
   }
 }

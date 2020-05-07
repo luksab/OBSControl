@@ -1,8 +1,7 @@
 "use strict";
-const Tradfri = require('ikea-tradfri');
-const tradfri = new Tradfri("192.168.2.100", { identity: 'tradfri_1588265367445', psk: 'BOPf31s84zcJZC28' });
-let group;
-tradfri.connect().then(() => group = tradfri.group("TRADFRI group"));
+const tradfriLib = require("node-tradfri-client");
+let tradfri;
+connect();
 const fs = require('fs');
 require('uWebSockets.js').App({})
     .ws('/*', {
@@ -34,11 +33,11 @@ require('uWebSockets.js').App({})
                 if (json)
                     switch (message["type"]) {
                         case "level":
-                            group.setLevel(message["level"]);
+                            setLights(tradfri,message["level"]);
                             break;
-                        case "switch":
-                            group.switch(message["switch"]);
-                            break;
+                        // case "switch":
+                        //     group.switch(message["switch"]);
+                        //     break;
                     }
             }
         }, drain: (ws) => {
@@ -70,3 +69,27 @@ require('uWebSockets.js').App({})
             console.log('Failed to listen to port ' + 8000);
         }
     });
+
+
+
+
+async function connect() {
+    try {
+        const TradfriClient = tradfriLib.TradfriClient;
+        tradfri = new TradfriClient("192.168.2.100");
+        await tradfri.connect('tradfri_1588265367445', 'BOPf31s84zcJZC28');
+        tradfri.observeGroupsAndScenes();
+        tradfri.observeDevices();
+        return tradfri;
+    } catch (e) {
+        console.log(e);
+        return false;
+    }
+}
+async function setLights(tradfri, value) {
+    for (const deviceId in tradfri.devices) {
+        if (tradfri.devices[deviceId].name === "Stand" || tradfri.devices[deviceId].name === "Leiste") {
+            const requestSent = await tradfri.operateLight(tradfri.devices[deviceId], { onOff: true, dimmer: value });
+        }
+    }
+}

@@ -4,7 +4,7 @@ var studioMode = true;
 var obsWS;
 var ws;
 var sliderPos;
-var lastTime = Date.now() / 1000;
+var timer = 0;
 
 var padding = 10;
 
@@ -78,23 +78,32 @@ window.onload = function () {
             if (ws)
                 ws.close()
             //ws = null;
-            ws = new WebSocket("ws://192.168.2.253:8000/");
+            try {
+                ws = new WebSocket("ws://192.168.2.253:8000/");
+            } catch (error) {
+                setTimeout(function () {
+                    connect();
+                }, 1000);
+            }
+
             ws.onclose = function (e) {
                 if (e.reason !== "") {
                     console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
                     setTimeout(function () {
-                        connect();
+                        if (ws.readyState !== WebSocket.CONNECTING)
+                            connect();
                     }, 1000);
                 }
             };
         }
         connect();
         //that = this;
-        setInterval(function () {
+        clearInterval(timer);
+        timer = setInterval(function () {
             if (sliderPos !== document.getElementById("lampRange").value && ws.readyState === WebSocket.OPEN) {
                 sliderPos = document.getElementById("lampRange").value;
                 ws.send(JSON.stringify({ type: "level", level: document.getElementById("lampRange").value }));
-            } else if(ws.readyState === WebSocket.CLOSED){
+            } else if (ws.readyState === WebSocket.CLOSED) {
                 connect();
             }
         }, 500)
