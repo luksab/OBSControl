@@ -14,6 +14,14 @@
     float: left;
 }
 
+#mute_list{
+    width: 75vw;
+    height: 15vh;
+    left: 0;
+    top: 0;
+    float: left;
+}
+
 .square {
     padding: 2px;
     margin: 2px;

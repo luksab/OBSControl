@@ -1,5 +1,6 @@
 var sceneListDiv;
 var sourceListDiv;
+var muteListDiv;
 var studioMode = true;
 var obsWS;
 var ws;
@@ -59,6 +60,7 @@ function addButton(buttons, text, options) {
 window.onload = function () {
     sceneListDiv = document.getElementById('scene_list');
     sourceListDiv = document.getElementById('source_list');
+    muteListDiv = document.getElementById('mute_list');
 
     document.getElementById('address_button').addEventListener('click', function (e) {
         if (obsWS != null && obsWS.ws.readyState === WebSocket.OPEN) {
@@ -66,6 +68,7 @@ window.onload = function () {
             ws.close();
             sceneListDiv.innerHTML = "";
             sourceListDiv.innerHTML = "";
+            muteListDiv.innerHTML = "";
             this.innerHTML = "Connect";
             obsWS.ws.close();
             return;
@@ -237,6 +240,50 @@ window.onload = function () {
                     if (ele.innerText.replace("\n", "") == data["item-name"]) {
                         ele.style.fill = data["item-visible"] ? "green" : "red";
                         ele.color = data["item-visible"] ? "green" : "red";
+                    }
+
+                }
+            }
+        })
+
+        buttons = [];
+        addButton(buttons, "Desktop Audio", {
+            onclick: function () {
+                var state = false;
+                for (var i in muteListDiv.childNodes) {
+                    if (typeof muteListDiv.childNodes[i].style === "object") {
+                        var ele = muteListDiv.childNodes[i];
+                        if (ele.innerText.replace("\n", "") === "Desktop Audio" && ele.color === "red")
+                            state = true;
+                    }
+                }
+                obsWS.send('SetMute', { source: "Desktop Audio", mute: !state }).then(function (e) { console.log(e) });
+            }, color: "green"
+        });
+
+        addButton(buttons, "Mic/Aux", {
+            onclick: function () {
+                var state = false;
+                for (var i in muteListDiv.childNodes) {
+                    if (typeof muteListDiv.childNodes[i].style === "object") {
+                        var ele = muteListDiv.childNodes[i];
+                        if (ele.innerText.replace("\n", "") === "Mic/Aux" && ele.color === "red")
+                            state = true;
+                    }
+                }
+                obsWS.send('SetMute', { source: "Mic/Aux", mute: !state }).then(function (e) { console.log(e) });
+            }, color: "green"
+        });
+
+        addButtons(buttons, muteListDiv);
+
+        obsWS.on("SourceMuteStateChanged",function(data) {
+            for (var i in muteListDiv.childNodes) {
+                if (typeof muteListDiv.childNodes[i].style === "object") {
+                    var ele = muteListDiv.childNodes[i];
+                    if (ele.innerText.replace("\n", "") == data["sourceName"]) {
+                        ele.style.fill = data["muted"] ? "red" : "green";
+                        ele.color = data["muted"] ? "red" : "green";
                     }
 
                 }
